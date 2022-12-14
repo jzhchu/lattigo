@@ -190,3 +190,10 @@ func NormStats(vec []*big.Int) (float64, float64, float64) {
 
 	return math.Log2(x), math.Log2(y), math.Log2(z)
 }
+
+func subMod(a, b, q uint64) uint64 {
+	if a > b {
+		return a - b
+	}
+	return a + q - b
+}

@@ -51,6 +51,14 @@ type skEncryptor struct {
 	uniformSampler ringqp.UniformSampler
 }
 
+type lpkEncryptor struct {
+	*encryptorBase
+	pk *PublicKey
+	u  *ring.Poly
+	e1 *ring.Poly
+	e2 *ring.Poly
+}
+
 // NewEncryptor creates a new Encryptor
 // Accepts either a secret-key or a public-key.
 func NewEncryptor(params Parameters, key interface{}) Encryptor {
@@ -67,6 +75,10 @@ func NewEncryptor(params Parameters, key interface{}) Encryptor {
 // NewPRNGEncryptor creates a new PRNGEncryptor instance.
 func NewPRNGEncryptor(params Parameters, key *SecretKey) PRNGEncryptor {
 	return newSkEncryptor(params, key)
+}
+
+func NewLPEncryptor(params Parameters, key *PublicKey) Encryptor {
+	return newLpkEncryptor(params, key)
 }
 
 func newEncryptorBase(params Parameters) *encryptorBase {
@@ -113,6 +125,19 @@ func newPkEncryptor(params Parameters, key interface{}) (enc *pkEncryptor) {
 	if err != nil {
 		panic(err)
 	}
+	return enc
+}
+
+func newLpkEncryptor(params Parameters, key *PublicKey) (enc *lpkEncryptor) {
+	enc = new(lpkEncryptor)
+	enc.encryptorBase = newEncryptorBase(params)
+	enc.pk, _ = enc.checkPk(key)
+
+	ringQ := params.RingQ()
+	enc.u = ringQ.NewPoly()
+	enc.e1 = ringQ.NewPoly()
+	enc.e2 = ringQ.NewPoly()
+
 	return enc
 }
 
@@ -455,6 +480,110 @@ func (enc *pkEncryptor) WithKey(key interface{}) Encryptor {
 // element c1.
 func (enc skEncryptor) WithPRNG(prng utils.PRNG) PRNGEncryptor {
 	return &skEncryptor{enc.encryptorBase, enc.sk, enc.uniformSampler.WithPRNG(prng)}
+}
+
+func (enc *lpkEncryptor) Encrypt(pt *Plaintext, ct interface{}) {
+	if pt == nil {
+		enc.EncryptZero(ct)
+	} else {
+		switch ct := ct.(type) {
+		case *Ciphertext:
+			ct.MetaData = pt.MetaData
+			enc.EncryptZero(ct)
+			enc.params.RingQ().AddLvl(ct.Level(), ct.Value[0], pt.Value, ct.Value[0])
+		default:
+			panic(fmt.Sprintf("cannot Encrypt: input ciphertext type %s is not supported", reflect.TypeOf(ct)))
+		}
+	}
+}
+
+func (enc *lpkEncryptor) EncryptZero(ct interface{}) {
+	switch ct := ct.(type) {
+	case *Ciphertext:
+		if enc.params.PCount() > 0 {
+			panic(fmt.Sprintf("cannot Encrypt: input ciphertext type contains p"))
+		} else {
+			enc.encryptZeroNoP(ct)
+		}
+	default:
+		panic(fmt.Sprintf("cannot Encrypt: input ciphertext type %s is not supported", reflect.TypeOf(ct)))
+	}
+}
+
+func (enc *lpkEncryptor) encryptZeroNoP(ct *Ciphertext) {
+	ringQ := enc.params.RingQ()
+	levelQ := ct.Level()
+	buffQ0 := enc.buffQ[0]
+	enc.ternarySampler.ReadLvl(levelQ, buffQ0)
+	ringQ.NTTLvl(levelQ, buffQ0, buffQ0)
+
+	c0, c1 := ct.Value[0], ct.Value[1]
+	ringQ.MulCoeffsMontgomeryLvl(levelQ, buffQ0, enc.pk.Value[0].Q, c0)
+	ringQ.MulCoeffsMontgomeryLvl(levelQ, buffQ0, enc.pk.Value[1].Q, c1)
+
+	enc.u = buffQ0.CopyNew()
+	ringQ.InvNTTLvl(levelQ, enc.u, enc.u)
+
+	if ct.IsNTT {
+		enc.gaussianSampler.ReadLvl(levelQ, buffQ0)
+		enc.e1 = buffQ0.CopyNew()
+		ringQ.InvNTTLvl(levelQ, enc.e1, enc.e1)
+		ringQ.NTTLvl(levelQ, buffQ0, buffQ0)
+		ringQ.AddLvl(levelQ, c0, buffQ0, c0)
+	} else {
+		ringQ.InvNTTLvl(levelQ, c0, c0)
+		nc0 := c0.CopyNew()
+		enc.gaussianSampler.ReadAndAddLvl(levelQ, c0)
+		enc.e1 = enc.readAndSub(c0, nc0)
+	}
+
+	if ct.IsNTT {
+		enc.gaussianSampler.ReadLvl(levelQ, buffQ0)
+		enc.e2 = buffQ0.CopyNew()
+		ringQ.InvNTTLvl(levelQ, enc.e2, enc.e2)
+		ringQ.NTTLvl(levelQ, buffQ0, buffQ0)
+		ringQ.AddLvl(levelQ, c1, buffQ0, c1)
+	} else {
+		ringQ.InvNTTLvl(levelQ, c1, c1)
+		nc1 := c1.CopyNew()
+		enc.gaussianSampler.ReadAndAddLvl(levelQ, c1)
+		enc.e2 = enc.readAndSub(c1, nc1)
+	}
+}
+
+func (enc *lpkEncryptor) readAndSub(pol1, pol2 *ring.Poly) (res *ring.Poly) {
+	res = pol1.CopyNew()
+	for i := 0; i < pol1.N(); i++ {
+		for j, qi := range enc.params.Q() {
+			res.Coeffs[j][i] = subMod(pol1.Coeffs[j][i], pol2.Coeffs[j][i], qi)
+		}
+	}
+	return
+}
+
+func (enc *lpkEncryptor) EncryptZeroNew(level int) (ct *Ciphertext) {
+	ct = NewCiphertext(enc.params, 1, level)
+	enc.EncryptZero(ct)
+
+	return
+}
+
+func (enc *lpkEncryptor) EncryptNew(pt *Plaintext) (ct *Ciphertext) {
+	ct = NewCiphertext(enc.params, 1, pt.Level())
+	enc.Encrypt(pt, ct)
+	return
+}
+
+func (enc *lpkEncryptor) ShallowCopy() Encryptor {
+	return NewLPEncryptor(enc.params, enc.pk)
+}
+
+func (enc *lpkEncryptor) WithKey(key interface{}) Encryptor {
+	pkPtr, err := enc.checkPk(key)
+	if err != nil {
+		panic(err)
+	}
+	return &lpkEncryptor{enc.encryptorBase, pkPtr, nil, nil, nil}
 }
 
 // checkPk checks that a given pk is correct for the parameters.
