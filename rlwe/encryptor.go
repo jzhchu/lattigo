@@ -586,6 +586,13 @@ func (enc *lpkEncryptor) WithKey(key interface{}) Encryptor {
 	return &lpkEncryptor{enc.encryptorBase, pkPtr, nil, nil, nil}
 }
 
+func (enc *lpkEncryptor) MarshalEncParams() ([]byte, []byte, []byte) {
+	uBytes, _ := enc.u.MarshalBinary()
+	e1Bytes, _ := enc.e1.MarshalBinary()
+	e2Bytes, _ := enc.e2.MarshalBinary()
+	return uBytes, e1Bytes, e2Bytes
+}
+
 // checkPk checks that a given pk is correct for the parameters.
 func (enc encryptorBase) checkPk(key interface{}) (pk *PublicKey, err error) {
 

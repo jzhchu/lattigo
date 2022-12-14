@@ -1,4 +1,4 @@
-module github.com/tuneinsight/lattigo/v4
+module github.com/jzhchu/lattigo
 
 go 1.14
 
