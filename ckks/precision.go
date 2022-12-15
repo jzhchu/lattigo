@@ -5,7 +5,7 @@ import (
 	"math"
 	"sort"
 
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 // PrecisionStats is a struct storing statistic about the precision of a CKKS plaintext

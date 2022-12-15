@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/tuneinsight/lattigo/v4/ckks"
-	"github.com/tuneinsight/lattigo/v4/ckks/bootstrapping"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
-	"github.com/tuneinsight/lattigo/v4/utils"
+	"github.com/jzhchu/lattigo/ckks"
+	"github.com/jzhchu/lattigo/ckks/bootstrapping"
+	"github.com/jzhchu/lattigo/rlwe"
+	"github.com/jzhchu/lattigo/utils"
 )
 
 var flagShort = flag.Bool("short", false, "run the example with a smaller and insecure ring degree.")

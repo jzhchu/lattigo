@@ -5,11 +5,11 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/jzhchu/lattigo/ckks"
+	"github.com/jzhchu/lattigo/rlwe"
+	"github.com/jzhchu/lattigo/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tuneinsight/lattigo/v4/ckks"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
-	"github.com/tuneinsight/lattigo/v4/utils"
 )
 
 var printPrecisionStats = flag.Bool("print-precision", false, "print precision stats")

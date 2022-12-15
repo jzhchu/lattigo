@@ -2,8 +2,8 @@
 package ringqp
 
 import (
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/utils"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/utils"
 )
 
 // Poly represents a polynomial in the ring of polynomial modulo Q*P.

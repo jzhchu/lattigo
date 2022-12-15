@@ -3,7 +3,7 @@
 package ckks
 
 import (
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 func NewPlaintext(params Parameters, level int) (pt *rlwe.Plaintext) {

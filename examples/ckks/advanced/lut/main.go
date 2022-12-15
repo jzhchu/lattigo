@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tuneinsight/lattigo/v4/ckks"
-	ckksAdvanced "github.com/tuneinsight/lattigo/v4/ckks/advanced"
-	"github.com/tuneinsight/lattigo/v4/rgsw/lut"
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/ckks"
+	ckksAdvanced "github.com/jzhchu/lattigo/ckks/advanced"
+	"github.com/jzhchu/lattigo/rgsw/lut"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 // This example showcases how lookup tables can complement the CKKS scheme to compute non-linear functions

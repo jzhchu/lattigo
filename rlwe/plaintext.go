@@ -1,7 +1,7 @@
 package rlwe
 
 import (
-	"github.com/tuneinsight/lattigo/v4/ring"
+	"github.com/jzhchu/lattigo/ring"
 )
 
 // Plaintext is a common base type for RLWE plaintexts.

@@ -6,11 +6,11 @@ import (
 
 	"encoding/binary"
 
-	"github.com/tuneinsight/lattigo/v4/ckks"
-	"github.com/tuneinsight/lattigo/v4/drlwe"
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
-	"github.com/tuneinsight/lattigo/v4/utils"
+	"github.com/jzhchu/lattigo/ckks"
+	"github.com/jzhchu/lattigo/drlwe"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/rlwe"
+	"github.com/jzhchu/lattigo/utils"
 )
 
 // MaskedTransformProtocol is a struct storing the parameters for the MaskedTransformProtocol protocol.

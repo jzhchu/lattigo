@@ -7,11 +7,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tuneinsight/lattigo/v4/bfv"
-	"github.com/tuneinsight/lattigo/v4/dbfv"
-	"github.com/tuneinsight/lattigo/v4/drlwe"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
-	"github.com/tuneinsight/lattigo/v4/utils"
+	"github.com/jzhchu/lattigo/bfv"
+	"github.com/jzhchu/lattigo/dbfv"
+	"github.com/jzhchu/lattigo/drlwe"
+	"github.com/jzhchu/lattigo/rlwe"
+	"github.com/jzhchu/lattigo/utils"
 )
 
 func check(err error) {

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 func testString(params rlwe.Parameters, opname string) string {

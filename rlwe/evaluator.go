@@ -3,8 +3,8 @@ package rlwe
 import (
 	"math/bits"
 
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/rlwe/ringqp"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/rlwe/ringqp"
 )
 
 // Operand is a common interface for Ciphertext and Plaintext types.

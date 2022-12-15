@@ -8,9 +8,9 @@ import (
 	"math/bits"
 	"runtime"
 
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
-	"github.com/tuneinsight/lattigo/v4/utils"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/rlwe"
+	"github.com/jzhchu/lattigo/utils"
 )
 
 // Polynomial is a struct storing the coefficients of a polynomial

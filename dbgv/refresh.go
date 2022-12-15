@@ -2,9 +2,9 @@
 package dbgv
 
 import (
-	"github.com/tuneinsight/lattigo/v4/bgv"
-	"github.com/tuneinsight/lattigo/v4/drlwe"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/bgv"
+	"github.com/jzhchu/lattigo/drlwe"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 // RefreshProtocol is a struct storing the relevant parameters for the Refresh protocol.

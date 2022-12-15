@@ -3,7 +3,7 @@ package rlwe
 import (
 	"math/big"
 
-	"github.com/tuneinsight/lattigo/v4/ring"
+	"github.com/jzhchu/lattigo/ring"
 )
 
 // AdditiveShare is a type for storing additively shared values in Z_Q[X] (RNS domain).

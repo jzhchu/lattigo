@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/tuneinsight/lattigo/v4/ring"
+	"github.com/jzhchu/lattigo/ring"
 )
 
 // GetRootsbigFloat returns the roots e^{2*pi*i/m *j} for 0 <= j <= NthRoot

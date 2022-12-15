@@ -4,8 +4,8 @@
 package dbgv
 
 import (
-	"github.com/tuneinsight/lattigo/v4/bgv"
-	"github.com/tuneinsight/lattigo/v4/drlwe"
+	"github.com/jzhchu/lattigo/bgv"
+	"github.com/jzhchu/lattigo/drlwe"
 )
 
 // NewCKGProtocol creates a new drlwe.CKGProtocol instance from the BGV parameters.

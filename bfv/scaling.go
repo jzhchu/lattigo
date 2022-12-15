@@ -3,8 +3,8 @@ package bfv
 import (
 	"math/big"
 
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/utils"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/utils"
 )
 
 // Scaler is an interface that rescales polynomial coefficients by a fraction t/Q.

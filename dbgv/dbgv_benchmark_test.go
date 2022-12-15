@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/tuneinsight/lattigo/v4/bgv"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/bgv"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 func BenchmarkDBGV(b *testing.B) {

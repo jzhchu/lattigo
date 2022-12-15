@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/tuneinsight/lattigo/v4/ring"
+	"github.com/jzhchu/lattigo/ring"
 )
 
 // PublicKeyIsCorrect returns true if pk is a correct RLWE public-key for secret-key sk and parameters params.

@@ -4,7 +4,7 @@ import (
 	"math/bits"
 	"unsafe"
 
-	"github.com/tuneinsight/lattigo/v4/utils"
+	"github.com/jzhchu/lattigo/utils"
 )
 
 // GenGaloisParams generates the generators for the Galois endomorphisms.

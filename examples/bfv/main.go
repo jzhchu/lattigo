@@ -5,11 +5,11 @@ import (
 	"math"
 	"math/bits"
 
-	"github.com/tuneinsight/lattigo/v4/rlwe"
-	"github.com/tuneinsight/lattigo/v4/utils"
+	"github.com/jzhchu/lattigo/rlwe"
+	"github.com/jzhchu/lattigo/utils"
 
-	"github.com/tuneinsight/lattigo/v4/bfv"
-	"github.com/tuneinsight/lattigo/v4/ring"
+	"github.com/jzhchu/lattigo/bfv"
+	"github.com/jzhchu/lattigo/ring"
 )
 
 func obliviousRiding() {

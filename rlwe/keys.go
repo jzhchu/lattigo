@@ -1,7 +1,7 @@
 package rlwe
 
 import (
-	"github.com/tuneinsight/lattigo/v4/rlwe/ringqp"
+	"github.com/jzhchu/lattigo/rlwe/ringqp"
 )
 
 // SecretKey is a type for generic RLWE secret keys.

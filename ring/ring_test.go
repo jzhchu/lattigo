@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/tuneinsight/lattigo/v4/utils"
+	"github.com/jzhchu/lattigo/utils"
 
 	"github.com/stretchr/testify/require"
 )

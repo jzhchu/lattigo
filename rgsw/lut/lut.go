@@ -2,8 +2,8 @@
 package lut
 
 import (
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 // InitLUT takes a function g, and creates a LUT polynomial for the function in the interval [a, b].

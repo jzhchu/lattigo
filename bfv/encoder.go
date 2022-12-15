@@ -3,9 +3,9 @@ package bfv
 import (
 	"fmt"
 
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
-	"github.com/tuneinsight/lattigo/v4/utils"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/rlwe"
+	"github.com/jzhchu/lattigo/utils"
 )
 
 // GaloisGen is an integer of order N=2^d modulo M=2N and that spans Z_M with the integer -1.

@@ -2,7 +2,7 @@
 package bfv
 
 import (
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 // NewPlaintext creates and allocates a new plaintext in RingQ (multiple moduli of Q).

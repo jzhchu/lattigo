@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/tuneinsight/lattigo/v4/bfv"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/bfv"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 func BenchmarkDBFV(b *testing.B) {

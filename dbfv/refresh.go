@@ -1,9 +1,9 @@
 package dbfv
 
 import (
-	"github.com/tuneinsight/lattigo/v4/bfv"
-	"github.com/tuneinsight/lattigo/v4/drlwe"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/bfv"
+	"github.com/jzhchu/lattigo/drlwe"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 // RefreshProtocol is a struct storing the relevant parameters for the Refresh protocol.

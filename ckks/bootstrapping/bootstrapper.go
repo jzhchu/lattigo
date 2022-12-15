@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/tuneinsight/lattigo/v4/ckks"
-	"github.com/tuneinsight/lattigo/v4/ckks/advanced"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/ckks"
+	"github.com/jzhchu/lattigo/ckks/advanced"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 // Bootstrapper is a struct to store a memory buffer with the plaintext matrices,

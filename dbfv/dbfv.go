@@ -4,8 +4,8 @@
 package dbfv
 
 import (
-	"github.com/tuneinsight/lattigo/v4/bfv"
-	"github.com/tuneinsight/lattigo/v4/drlwe"
+	"github.com/jzhchu/lattigo/bfv"
+	"github.com/jzhchu/lattigo/drlwe"
 )
 
 // NewCKGProtocol creates a new drlwe.CKGProtocol instance from the BFV parameters.

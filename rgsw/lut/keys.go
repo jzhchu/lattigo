@@ -1,9 +1,9 @@
 package lut
 
 import (
-	"github.com/tuneinsight/lattigo/v4/rgsw"
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/rgsw"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 // EvaluationKey is a struct storing the encryption

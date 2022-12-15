@@ -3,7 +3,7 @@ package rlwe
 import (
 	"fmt"
 
-	"github.com/tuneinsight/lattigo/v4/rlwe/ringqp"
+	"github.com/jzhchu/lattigo/rlwe/ringqp"
 )
 
 // CiphertextQP is a generic type for RLWE ciphertexts in R_qp.

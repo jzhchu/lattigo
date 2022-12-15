@@ -1,9 +1,9 @@
 package bootstrapping
 
 import (
-	"github.com/tuneinsight/lattigo/v4/ckks"
-	"github.com/tuneinsight/lattigo/v4/ckks/advanced"
-	"github.com/tuneinsight/lattigo/v4/utils"
+	"github.com/jzhchu/lattigo/ckks"
+	"github.com/jzhchu/lattigo/ckks/advanced"
+	"github.com/jzhchu/lattigo/utils"
 )
 
 // Parameters is a struct for the default bootstrapping parameters

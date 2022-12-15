@@ -4,10 +4,10 @@ package advanced
 import (
 	"math"
 
-	"github.com/tuneinsight/lattigo/v4/ckks"
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
-	"github.com/tuneinsight/lattigo/v4/rlwe/ringqp"
+	"github.com/jzhchu/lattigo/ckks"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/rlwe"
+	"github.com/jzhchu/lattigo/rlwe/ringqp"
 )
 
 // Evaluator is an interface embedding the ckks.Evaluator interface with

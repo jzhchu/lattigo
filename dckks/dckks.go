@@ -4,8 +4,8 @@
 package dckks
 
 import (
-	"github.com/tuneinsight/lattigo/v4/ckks"
-	"github.com/tuneinsight/lattigo/v4/drlwe"
+	"github.com/jzhchu/lattigo/ckks"
+	"github.com/jzhchu/lattigo/drlwe"
 )
 
 // NewCKGProtocol creates a new drlwe.CKGProtocol instance from the CKKS parameters.

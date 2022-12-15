@@ -1,9 +1,9 @@
 package rgsw
 
 import (
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
-	"github.com/tuneinsight/lattigo/v4/rlwe/ringqp"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/rlwe"
+	"github.com/jzhchu/lattigo/rlwe/ringqp"
 )
 
 // Evaluator is a type for evaluating homomorphic operations involving RGSW ciphertexts.

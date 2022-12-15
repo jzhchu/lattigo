@@ -1,9 +1,9 @@
 package dckks
 
 import (
-	"github.com/tuneinsight/lattigo/v4/ckks"
-	"github.com/tuneinsight/lattigo/v4/drlwe"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/ckks"
+	"github.com/jzhchu/lattigo/drlwe"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 // RefreshProtocol is a struct storing the relevant parameters for the Refresh protocol.

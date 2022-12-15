@@ -6,8 +6,8 @@ import (
 	"math/cmplx"
 	"time"
 
-	"github.com/tuneinsight/lattigo/v4/ckks"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
+	"github.com/jzhchu/lattigo/ckks"
+	"github.com/jzhchu/lattigo/rlwe"
 )
 
 func example() {

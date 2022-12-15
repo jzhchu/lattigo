@@ -7,9 +7,9 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/rlwe"
-	"github.com/tuneinsight/lattigo/v4/utils"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/rlwe"
+	"github.com/jzhchu/lattigo/utils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -3,8 +3,8 @@ package rlwe
 import (
 	"fmt"
 
-	"github.com/tuneinsight/lattigo/v4/ring"
-	"github.com/tuneinsight/lattigo/v4/utils"
+	"github.com/jzhchu/lattigo/ring"
+	"github.com/jzhchu/lattigo/utils"
 )
 
 // Ciphertext is a generic type for RLWE ciphertexts.
