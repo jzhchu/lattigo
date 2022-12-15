@@ -65,6 +65,7 @@ func TestLogProofEnc(t *testing.T) {
 	encoder.Encode([]uint64{9527}, yPlainText)
 
 	xCipherText := encryptor.EncryptNew(xPlainText)
+	encryptor.MarshalEncParams()
 	yCipherText := encryptor.EncryptNew(yPlainText)
 	addCipherText := evaluator.AddNew(xCipherText, yCipherText)
 	mulCipherText := evaluator.MulNew(xCipherText, yCipherText)

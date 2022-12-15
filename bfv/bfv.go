@@ -47,7 +47,7 @@ func NewEncryptor(params Parameters, key interface{}) rlwe.Encryptor {
 	return rlwe.NewEncryptor(params.Parameters, key)
 }
 
-func NewLPEncryptor(params Parameters, key *rlwe.PublicKey) rlwe.Encryptor {
+func NewLPEncryptor(params Parameters, key *rlwe.PublicKey) rlwe.LPEncryptor {
 	return rlwe.NewLPEncryptor(params.Parameters, key)
 }
 

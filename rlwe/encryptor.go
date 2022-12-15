@@ -29,6 +29,11 @@ type PRNGEncryptor interface {
 	WithPRNG(prng utils.PRNG) PRNGEncryptor
 }
 
+type LPEncryptor interface {
+	Encryptor
+	MarshalEncParams() ([]byte, []byte, []byte)
+}
+
 type encryptorBase struct {
 	params Parameters
 	*encryptorBuffers
@@ -77,7 +82,7 @@ func NewPRNGEncryptor(params Parameters, key *SecretKey) PRNGEncryptor {
 	return newSkEncryptor(params, key)
 }
 
-func NewLPEncryptor(params Parameters, key *PublicKey) Encryptor {
+func NewLPEncryptor(params Parameters, key *PublicKey) LPEncryptor {
 	return newLpkEncryptor(params, key)
 }
 
