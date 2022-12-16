@@ -520,14 +520,15 @@ func (enc *lpkEncryptor) encryptZeroNoP(ct *Ciphertext) {
 	levelQ := ct.Level()
 	buffQ0 := enc.buffQ[0]
 	enc.ternarySampler.ReadLvl(levelQ, buffQ0)
+	enc.u = buffQ0.CopyNew()
 	ringQ.NTTLvl(levelQ, buffQ0, buffQ0)
 
 	c0, c1 := ct.Value[0], ct.Value[1]
 	ringQ.MulCoeffsMontgomeryLvl(levelQ, buffQ0, enc.pk.Value[0].Q, c0)
 	ringQ.MulCoeffsMontgomeryLvl(levelQ, buffQ0, enc.pk.Value[1].Q, c1)
 
-	enc.u = buffQ0.CopyNew()
-	ringQ.InvNTTLvl(levelQ, enc.u, enc.u)
+	//enc.u = buffQ0.CopyNew()
+	//ringQ.InvNTTLvl(levelQ, enc.u, enc.u)
 
 	if ct.IsNTT {
 		enc.gaussianSampler.ReadLvl(levelQ, buffQ0)
