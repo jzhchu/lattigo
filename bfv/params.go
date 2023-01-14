@@ -17,6 +17,15 @@ const (
 )
 
 var (
+	//// PN10QP29 is a set of default parameters with logN=10 and logQP=29
+	//PN10QP29 = ParametersLiteral{
+	//	LogN: 10,
+	//	Q:    []uint64{0x3001, 0x10001},
+	//	//Q:        []uint64{0x3001, 0x15400000001},
+	//	Pow2Base: 6,
+	//	T:        0x3001,
+	//}
+
 	// PN11QP54 is a set of default parameters with logN=11 and logQP=54
 	PN11QP54 = ParametersLiteral{
 		LogN:     11,

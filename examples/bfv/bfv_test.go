@@ -59,10 +59,20 @@ func TestLogProofEnc(t *testing.T) {
 	evaluator := bfv.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk})
 	decryptor := bfv.NewDecryptor(params, sk)
 
+	x := make([]uint64, params.N())
+	y := make([]uint64, params.N())
+	addReal := make([]uint64, params.N())
+	mulReal := make([]uint64, params.N())
+	for i := range x {
+		x[i] = 2333 + uint64(i)
+		y[i] = 9527 + uint64(i)
+		addReal[i] = (x[i] + y[i]) % params.T()
+		mulReal[i] = (x[i] * y[i]) % params.T()
+	}
 	xPlainText := bfv.NewPlaintext(params, params.MaxLevel())
 	yPlainText := bfv.NewPlaintext(params, params.MaxLevel())
-	encoder.Encode([]uint64{2333}, xPlainText)
-	encoder.Encode([]uint64{9527}, yPlainText)
+	encoder.Encode(x, xPlainText)
+	encoder.Encode(y, yPlainText)
 
 	xCipherText := encryptor.EncryptNew(xPlainText)
 	yCipherText := encryptor.EncryptNew(yPlainText)
@@ -75,7 +85,13 @@ func TestLogProofEnc(t *testing.T) {
 	addRes := encoder.DecodeUintNew(addPlainText)
 	mulRes := encoder.DecodeUintNew(mulPlainText)
 
+	fmt.Print("test add Result: ")
 	fmt.Println(addRes)
+	fmt.Print("real add Result: ")
+	fmt.Println(addReal)
+	fmt.Println()
+	fmt.Print("test mul Result: ")
 	fmt.Println(mulRes)
-
+	fmt.Print("real mul Result: ")
+	fmt.Println(mulReal)
 }
