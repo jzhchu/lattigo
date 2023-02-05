@@ -34,6 +34,14 @@ var (
 		T:        0x3001,
 	}
 
+	// PN12Q109 is a set of default parameters with logN=11 and logQP=54
+	PN12Q109 = ParametersLiteral{
+		LogN:     12,
+		Q:        []uint64{0x40002001, 0x7ffffec001, 0x8000016001}, // 13.5 + 40.4 bits
+		Pow2Base: 6,
+		T:        65537,
+	}
+
 	// PN12QP109 is a set of default parameters with logN=12 and logQP=109
 	PN12QP109 = ParametersLiteral{
 		LogN: 12,

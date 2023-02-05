@@ -8,7 +8,7 @@ import (
 )
 
 func TestBFV(t *testing.T) {
-	params, err := bfv.NewParametersFromLiteral(bfv.PN11QP54)
+	params, err := bfv.NewParametersFromLiteral(bfv.PN12Q109)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -25,8 +25,16 @@ func TestBFV(t *testing.T) {
 
 	xPlainText := bfv.NewPlaintext(params, params.MaxLevel())
 	yPlainText := bfv.NewPlaintext(params, params.MaxLevel())
-	encoder.Encode([]uint64{2333}, xPlainText)
-	encoder.Encode([]uint64{9527}, yPlainText)
+
+	xArray := make([]uint64, params.N())
+	yArray := make([]uint64, params.N())
+	for i := 0; i < params.N(); i++ {
+		xArray[i] = 9527 + uint64(i)
+		yArray[i] = 2333 + uint64(i)
+	}
+
+	encoder.Encode(xArray, xPlainText)
+	encoder.Encode(yArray, yPlainText)
 
 	xCipherText := encryptor.EncryptNew(xPlainText)
 	yCipherText := encryptor.EncryptNew(yPlainText)
