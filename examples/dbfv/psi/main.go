@@ -88,8 +88,8 @@ func main() {
 	}
 
 	// Creating encryption parameters from a default params with logN=14, logQP=438 with a plaintext modulus T=65537
-	paramsDef := bfv.PN14QP438
-	paramsDef.T = 65537
+	paramsDef := bfv.PN11QP54
+	paramsDef.T = bfv.PN11QP54.T
 	params, err := bfv.NewParametersFromLiteral(paramsDef)
 	if err != nil {
 		panic(err)

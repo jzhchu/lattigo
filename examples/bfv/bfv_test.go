@@ -3,11 +3,54 @@ package main
 import (
 	"fmt"
 	"github.com/jzhchu/lattigo/bfv"
+	"github.com/jzhchu/lattigo/ring"
 	"github.com/jzhchu/lattigo/rlwe"
+	"github.com/jzhchu/lattigo/utils"
 	"testing"
 )
 
-func TestBFV(t *testing.T) {
+func TestRing(t *testing.T) {
+	params, _ := bfv.NewParametersFromLiteral(bfv.PN12Q109)
+
+	prng, err := utils.NewPRNG()
+	if err != nil {
+		panic(err)
+	}
+	ternarySampler := ring.NewTernarySampler(prng, params.RingQ(), params.Sigma(), false)
+	gaussianSampler := ring.NewGaussianSampler(prng, params.RingQ(), params.Sigma(), int(6*params.Sigma()))
+
+	ringp, err := ring.NewRing(params.N(), params.Q())
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	poly1 := ringp.NewPoly()
+	ternarySampler.Read(poly1)
+	ringp.NTT(poly1, poly1)
+	ringp.MForm(poly1, poly1)
+
+	poly2 := ringp.NewPoly()
+	gaussianSampler.Read(poly2)
+	ringp.NTT(poly2, poly2)
+	ringp.MForm(poly2, poly2)
+
+	poly3 := ringp.NewPoly()
+	ringp.Add(poly1, poly2, poly3)
+
+	ringp.InvMForm(poly1, poly1)
+	ringp.InvNTT(poly1, poly1)
+	ringp.InvMForm(poly2, poly2)
+	ringp.InvNTT(poly2, poly2)
+	ringp.InvMForm(poly3, poly3)
+	ringp.InvNTT(poly3, poly3)
+
+	poly3.Copy(poly1)
+
+	fmt.Println(poly1)
+}
+
+func TestBFVParameters(t *testing.T) {
 	params, err := bfv.NewParametersFromLiteral(bfv.PN12Q109)
 	if err != nil {
 		fmt.Println(err)
