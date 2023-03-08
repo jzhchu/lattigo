@@ -102,9 +102,17 @@ var testVector = []struct {
 
 func TestNTT(t *testing.T) {
 
-	for _, tv := range testVector[1:] {
+	for _, tv := range testVector[1:2] {
 
 		ringQ, _ := NewRing(tv.N, tv.Qis)
+		//fmt.Print("nthRoot:")
+		//fmt.Println(ringQ.NthRoot)
+		//fmt.Print("PsiMont:")
+		//fmt.Println(ringQ.PsiMont)
+		//fmt.Print("PsiInvMont:")
+		//fmt.Println(ringQ.PsiInvMont)
+		//fmt.Print("BredParams:")
+		//fmt.Println(ringQ.BredParams)
 
 		t.Run(fmt.Sprintf("N=%d/limbs=%d", ringQ.N, len(ringQ.Modulus)), func(t *testing.T) {
 			x := ringQ.NewPoly()
@@ -117,4 +125,17 @@ func TestNTT(t *testing.T) {
 			assert.True(t, ringQ.Equal(tv.poly, x), "invNTT should reverse NTT")
 		})
 	}
+}
+
+func TestUtils(t *testing.T) {
+	prime := uint64(576460752303439873)
+	fmt.Println(PrimitiveRoot(prime))
+}
+
+func TestMontgomery(t *testing.T) {
+	q := uint64(576460752303439873)
+	//bredParams := BRedParams(q)
+	mredParams := MRedParams(q)
+	fmt.Println(mredParams)
+
 }

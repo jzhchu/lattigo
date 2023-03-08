@@ -300,7 +300,7 @@ func (r *Ring) genNTTParams(NthRoot uint64) error {
 		r.NttPsiInv[i] = make([]uint64, NthRoot>>1)
 
 		// Finds a 2N-th primitive Root
-		g := primitiveRoot(qi)
+		g := PrimitiveRoot(qi)
 
 		power := (qi - 1) / NthRoot
 		powerInv := (qi - 1) - power
@@ -321,6 +321,8 @@ func (r *Ring) genNTTParams(NthRoot uint64) error {
 			indexReversePrev := utils.BitReverse64(uint64(j-1), logNthRoot)
 			indexReverseNext := utils.BitReverse64(uint64(j), logNthRoot)
 
+			//fmt.Println(indexReverseNext)
+
 			r.NttPsi[i][indexReverseNext] = MRed(r.NttPsi[i][indexReversePrev], PsiMont, qi, r.MredParams[i])
 			r.NttPsiInv[i][indexReverseNext] = MRed(r.NttPsiInv[i][indexReversePrev], PsiInvMont, qi, r.MredParams[i])
 		}
@@ -331,8 +333,8 @@ func (r *Ring) genNTTParams(NthRoot uint64) error {
 	return nil
 }
 
-// primitiveRoot computes the smallest primitive root of the given prime q
-func primitiveRoot(q uint64) (g uint64) {
+// PrimitiveRoot computes the smallest primitive root of the given prime q
+func PrimitiveRoot(q uint64) (g uint64) {
 
 	notFoundPrimitiveRoot := true
 

@@ -7,6 +7,7 @@ import (
 	"github.com/jzhchu/lattigo/rlwe"
 	"github.com/jzhchu/lattigo/utils"
 	"testing"
+	"time"
 )
 
 func TestRing(t *testing.T) {
@@ -79,19 +80,53 @@ func TestBFVParameters(t *testing.T) {
 	encoder.Encode(xArray, xPlainText)
 	encoder.Encode(yArray, yPlainText)
 
+	startTime := time.Now()
 	xCipherText := encryptor.EncryptNew(xPlainText)
+	endTime := time.Now()
+	encryptTime := endTime.Sub(startTime)
+
 	yCipherText := encryptor.EncryptNew(yPlainText)
+
+	startTime = time.Now()
 	addCipherText := evaluator.AddNew(xCipherText, yCipherText)
+	endTime = time.Now()
+	addCipherTime := endTime.Sub(startTime)
+
+	startTime = time.Now()
 	mulCipherText := evaluator.MulNew(xCipherText, yCipherText)
 	evaluator.Relinearize(mulCipherText, mulCipherText)
+	endTime = time.Now()
+	mulCipherTime := endTime.Sub(startTime)
 
+	startTime = time.Now()
 	addPlainText := decryptor.DecryptNew(addCipherText)
+	endTime = time.Now()
+	decryptTime := endTime.Sub(startTime)
 	mulPlainText := decryptor.DecryptNew(mulCipherText)
 	addRes := encoder.DecodeUintNew(addPlainText)
 	mulRes := encoder.DecodeUintNew(mulPlainText)
 
 	fmt.Println(addRes)
 	fmt.Println(mulRes)
+
+	fmt.Println("encryption time is:", encryptTime)
+	fmt.Println("ciphertext add time is:", addCipherTime)
+	fmt.Println("ciphertext mul time is:", mulCipherTime)
+	fmt.Println("decryption time is:", decryptTime)
+
+	skBytes, _ := sk.MarshalBinary()
+	skSize := float64(len(skBytes)) / 1024.0
+	pkBytes, _ := pk.MarshalBinary()
+	pkSize := float64(len(pkBytes)) / 1024.0
+	ptBytes, _ := xPlainText.MarshalBinary()
+	ptSize := float64(len(ptBytes)) / 1024.0
+	ctBytes, _ := addCipherText.MarshalBinary()
+	ctSize := float64(len(ctBytes)) / 1024.0
+
+	fmt.Println("secret key size (kB) is:", skSize)
+	fmt.Println("public key size (kB) is:", pkSize)
+	fmt.Println("plaintext size (kB) is:", ptSize)
+	fmt.Println("ciphertext size (kB) is:", ctSize)
 }
 
 func TestLogProofEnc(t *testing.T) {
@@ -145,4 +180,5 @@ func TestLogProofEnc(t *testing.T) {
 	fmt.Println(mulRes)
 	fmt.Print("real mul Result: ")
 	fmt.Println(mulReal)
+	fmt.Println(params.QBigInt().String())
 }

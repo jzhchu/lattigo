@@ -9,10 +9,10 @@ type TernarySolSampler struct {
 	matrixProbability [2][precision - 1]uint8
 	matrixValues      [][3]uint64
 	sample            func(lvl int, poly *Poly)
-	seed              [32]byte
+	seed              []byte
 }
 
-func NewTernarySolSampler(baseRing *Ring, seed [32]byte, montgomery bool) *TernarySolSampler {
+func NewTernarySolSampler(baseRing *Ring, seed []byte, montgomery bool) *TernarySolSampler {
 	ternarySolSampler := new(TernarySolSampler)
 	ternarySolSampler.baseRing = baseRing
 	ternarySolSampler.sample = ternarySolSampler.sampleProbability
@@ -58,7 +58,7 @@ func (ts *TernarySolSampler) initializeMatrix(montgomery bool) {
 			ts.matrixValues[i][2] = MForm(Qi-1, Qi, ts.baseRing.BredParams[i])
 		} else {
 			ts.matrixValues[i][1] = 1
-			ts.matrixValues[i][1] = Qi - 1
+			ts.matrixValues[i][2] = Qi - 1
 		}
 	}
 }
@@ -68,15 +68,13 @@ func (ts *TernarySolSampler) sampleProbability(lvl int, pol *Poly) {
 	var sign uint64
 	var index uint64
 
-	randomBytesCoeffs := make([]byte, ts.baseRing.N>>3)
-	randomBytesSign := make([]byte, ts.baseRing.N>>3)
+	randomBytesCoeffs := make([]byte, ts.baseRing.N>>2)
 
 	ts.prng.Read(randomBytesCoeffs)
-	ts.prng.Read(randomBytesSign)
 
 	for i := 0; i < ts.baseRing.N; i++ {
 		coeff = uint64(uint8(randomBytesCoeffs[i>>3])>>(i&7)) & 1
-		sign = uint64(uint8(randomBytesSign[i>>3])>>(i&7)) & 1
+		sign = uint64(uint8(randomBytesCoeffs[ts.baseRing.N>>3+i>>3])>>(i&7)) & 1
 
 		index = (coeff & (sign ^ 1)) | ((sign & coeff) << 1)
 

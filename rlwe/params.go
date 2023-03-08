@@ -379,6 +379,16 @@ func (p Parameters) LogQP() int {
 	return tmp.BitLen()
 }
 
+// PrimitiveRoots returns the smallest primitive root
+func (p Parameters) PrimitiveRoots() []uint64 {
+	qp := p.QP()
+	res := make([]uint64, len(qp))
+	for i := range qp {
+		res[i] = ring.PrimitiveRoot(qp[i])
+	}
+	return res
+}
+
 // Pow2Base returns the base 2^x decomposition used for the key-switching keys.
 // Returns 0 if no decomposition is used (the case where x = 0).
 func (p Parameters) Pow2Base() int {

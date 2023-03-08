@@ -34,11 +34,11 @@ All notable changes to this library are documented in this file.
 - RING: prime generation no longer skips the first candidate.
 - RING: reworked marshalling of `ring.Poly` object. The new available methods are:
     - `ring.Poly` now has a `.Buff` 1-dimensional slice which is the only heavy allocation of a `ring.Poly`. The `.Coeffs` 2-dimensional slice is a re-slicing of `.Buff`.
-    - `GetDataLen64` and `GetDataLen32`: gets the length in bytes of an encoded `ring.Poly` object.
-    - `WriteTo64` and `WriteTo32`: encodes a `ring.Poly` object on a pre-allocated slice of bytes.
-    - `WriteCoeffsTo64` and `WriteCoeffsTo32`: encodes a slice of coefficients on a pre-allocated slice of bytes.
-    - `DecodeCoeffs64` and `DecodeCoeffs32`: decodes a slice of bytes on a slice of coefficients.
-    - `DecodePoly64` and `DecodePoly32`: decodes a slice of bytes on a pre-allocated `ring.Poly` object.
+    - `GetDataLen64` and `GetDataLen32`: gets the length in byteArray of an encoded `ring.Poly` object.
+    - `WriteTo64` and `WriteTo32`: encodes a `ring.Poly` object on a pre-allocated slice of byteArray.
+    - `WriteCoeffsTo64` and `WriteCoeffsTo32`: encodes a slice of coefficients on a pre-allocated slice of byteArray.
+    - `DecodeCoeffs64` and `DecodeCoeffs32`: decodes a slice of byteArray on a slice of coefficients.
+    - `DecodePoly64` and `DecodePoly32`: decodes a slice of byteArray on a pre-allocated `ring.Poly` object.
 - RING: renamed `ring.Poly.Degree()` to `ring.Poly.N()` for consistency.
 - RING: removed `ring.Poly.LenModuli()` deprecated method.
 - RING: changed `ring.NewPoly` to take the `level` as argument instead of the number of moduli, for consistency.
