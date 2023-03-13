@@ -25,6 +25,23 @@ type PCKSProtocol struct {
 	ternarySamplerMontgomeryQ *ring.TernarySampler
 }
 
+// NizkPCKSProtocol is the structure storing the parameters for the collective public key-switching fitted nizk.
+type NizkPCKSProtocol struct {
+	params        rlwe.Parameters
+	sigmaSmudging float64
+
+	tmpQP ringqp.Poly
+	tmpP  [2]*ring.Poly
+
+	basisExtender             *ring.BasisExtender
+	gaussianSampler           *ring.GaussianSampler
+	ternarySamplerMontgomeryQ *ring.TernarySampler
+
+	u  *ring.Poly
+	e0 *ring.Poly
+	e1 *ring.Poly
+}
+
 // ShallowCopy creates a shallow copy of PCKSProtocol in which all the read-only data-structures are
 // shared with the receiver and the temporary buffers are reallocated. The receiver and the returned
 // PCKSProtocol can be used concurrently.
@@ -49,6 +66,40 @@ func (pcks *PCKSProtocol) ShallowCopy() *PCKSProtocol {
 		basisExtender:             pcks.basisExtender.ShallowCopy(),
 		gaussianSampler:           ring.NewGaussianSampler(prng, params.RingQ(), pcks.sigmaSmudging, int(6*pcks.sigmaSmudging)),
 		ternarySamplerMontgomeryQ: ring.NewTernarySamplerWithHammingWeight(prng, params.RingQ(), params.HammingWeight(), false),
+	}
+}
+
+func (nizkPCKS *NizkPCKSProtocol) ShallowCopy() *NizkPCKSProtocol {
+	prng, err := utils.NewPRNG()
+	if err != nil {
+		panic(err)
+	}
+
+	params := nizkPCKS.params
+
+	var tmpP [2]*ring.Poly
+	if params.RingP() != nil {
+		tmpP = [2]*ring.Poly{params.RingP().NewPoly(), params.RingP().NewPoly()}
+	}
+	var uTemp *ring.Poly
+	var e0Temp *ring.Poly
+	var e1Temp *ring.Poly
+
+	uTemp.Copy(nizkPCKS.u)
+	e0Temp.Copy(nizkPCKS.e0)
+	e1Temp.Copy(nizkPCKS.e1)
+
+	return &NizkPCKSProtocol{
+		params:                    params,
+		sigmaSmudging:             nizkPCKS.sigmaSmudging,
+		tmpQP:                     params.RingQP().NewPoly(),
+		tmpP:                      tmpP,
+		basisExtender:             nizkPCKS.basisExtender.ShallowCopy(),
+		gaussianSampler:           ring.NewGaussianSampler(prng, params.RingQ(), nizkPCKS.sigmaSmudging, int(6*nizkPCKS.sigmaSmudging)),
+		ternarySamplerMontgomeryQ: ring.NewTernarySamplerWithHammingWeight(prng, params.RingQ(), params.HammingWeight(), false),
+		u:                         uTemp,
+		e0:                        e0Temp,
+		e1:                        e1Temp,
 	}
 }
 
@@ -117,7 +168,7 @@ func (pcks *PCKSProtocol) GenShare(sk *rlwe.SecretKey, pk *rlwe.PublicKey, ct *r
 	ringQP.InvNTTLvl(levelQ, levelP, shareOutQP0, shareOutQP0)
 	ringQP.InvNTTLvl(levelQ, levelP, shareOutQP1, shareOutQP1)
 
-	// h_0 = u_i * pk_0
+	// h_0 = u_i * pk_0 + e0
 	pcks.gaussianSampler.ReadLvl(levelQ, pcks.tmpQP.Q)
 	if ringP != nil {
 		ringQP.ExtendBasisSmallNormAndCenter(pcks.tmpQP.Q, levelP, nil, pcks.tmpQP.P)
@@ -215,4 +266,134 @@ func (share *PCKSShare) UnmarshalBinary(data []byte) (err error) {
 		return
 	}
 	return
+}
+
+func NewNizkPCKSProtocol(params rlwe.Parameters, sigmaSmudging float64) (nizkPCKS *NizkPCKSProtocol) {
+	nizkPCKS = new(NizkPCKSProtocol)
+	nizkPCKS.params = params
+	nizkPCKS.sigmaSmudging = sigmaSmudging
+
+	nizkPCKS.tmpQP = params.RingQP().NewPoly()
+
+	if params.RingP() != nil {
+		nizkPCKS.basisExtender = ring.NewBasisExtender(params.RingQ(), params.RingP())
+		nizkPCKS.tmpP = [2]*ring.Poly{params.RingP().NewPoly(), params.RingP().NewPoly()}
+	}
+
+	prng, err := utils.NewPRNG()
+	if err != nil {
+		panic(err)
+	}
+	nizkPCKS.gaussianSampler = ring.NewGaussianSampler(prng, params.RingQ(), sigmaSmudging, int(6*sigmaSmudging))
+	nizkPCKS.ternarySamplerMontgomeryQ = ring.NewTernarySamplerWithHammingWeight(prng, params.RingQ(), params.HammingWeight(), false)
+
+	return nizkPCKS
+}
+
+func (nizkPCKS *NizkPCKSProtocol) AllocateShare(levelQ int) (s *PCKSShare) {
+	return &PCKSShare{[2]*ring.Poly{nizkPCKS.params.RingQ().NewPolyLvl(levelQ), nizkPCKS.params.RingQ().NewPolyLvl(levelQ)}}
+}
+
+func (nizkPCKS *NizkPCKSProtocol) GenShare(sk *rlwe.SecretKey, pk *rlwe.PublicKey, ct *rlwe.Ciphertext, shareOut *PCKSShare) {
+	ringQ := nizkPCKS.params.RingQ()
+	ringP := nizkPCKS.params.RingP()
+	ringQP := nizkPCKS.params.RingQP()
+
+	ct1 := ct.Value[1]
+
+	levelQ := utils.MinInt(shareOut.Value[0].Level(), ct1.Level())
+	var levelP int
+	if ringP != nil {
+		levelP = len(ringP.Modulus) - 1
+	}
+
+	nizkPCKS.ternarySamplerMontgomeryQ.ReadLvl(levelQ, nizkPCKS.tmpQP.Q)
+	nizkPCKS.u = nizkPCKS.tmpQP.Q.CopyNew()
+
+	if ringP != nil {
+		ringQP.ExtendBasisSmallNormAndCenter(nizkPCKS.tmpQP.Q, levelP, nil, nizkPCKS.tmpQP.P)
+	}
+
+	ringQP.NTTLvl(levelQ, levelP, nizkPCKS.tmpQP, nizkPCKS.tmpQP)
+
+	shareOutQP0 := ringqp.Poly{Q: shareOut.Value[0], P: nizkPCKS.tmpP[0]}
+	shareOutQP1 := ringqp.Poly{Q: shareOut.Value[1], P: nizkPCKS.tmpP[1]}
+
+	// h_0 = u_i * pk_0
+	// h_1 = u_i * pk_1
+	ringQP.MulCoeffsMontgomeryLvl(levelQ, levelP, nizkPCKS.tmpQP, pk.Value[0], shareOutQP0)
+	ringQP.MulCoeffsMontgomeryLvl(levelQ, levelP, nizkPCKS.tmpQP, pk.Value[1], shareOutQP1)
+
+	ringQP.InvNTTLvl(levelQ, levelP, shareOutQP0, shareOutQP0)
+	ringQP.InvNTTLvl(levelQ, levelP, shareOutQP1, shareOutQP1)
+
+	// h_0 = u_i * pk_0 + e0
+	nizkPCKS.gaussianSampler.ReadLvl(levelQ, nizkPCKS.tmpQP.Q)
+	nizkPCKS.e0 = nizkPCKS.tmpQP.Q.CopyNew()
+	if ringP != nil {
+		ringQP.ExtendBasisSmallNormAndCenter(nizkPCKS.tmpQP.Q, levelP, nil, nizkPCKS.tmpQP.P)
+	}
+
+	ringQP.AddLvl(levelQ, levelP, shareOutQP0, nizkPCKS.tmpQP, shareOutQP0)
+
+	// h_1 = u_i * pk_1 + e1
+	nizkPCKS.gaussianSampler.ReadLvl(levelQ, nizkPCKS.tmpQP.Q)
+	nizkPCKS.e1 = nizkPCKS.tmpQP.Q.CopyNew()
+	if ringP != nil {
+		ringQP.ExtendBasisSmallNormAndCenter(nizkPCKS.tmpQP.Q, levelP, nil, nizkPCKS.tmpQP.P)
+	}
+
+	ringQP.AddLvl(levelQ, levelP, shareOutQP1, nizkPCKS.tmpQP, shareOutQP1)
+
+	if ringP != nil {
+		// h_0 = (u_i * pk_0 + e0)/P
+		nizkPCKS.basisExtender.ModDownQPtoQ(levelQ, levelP, shareOutQP0.Q, shareOutQP0.P, shareOutQP0.Q)
+
+		// h_1 = (u_i * pk_1 + e1)/P
+		nizkPCKS.basisExtender.ModDownQPtoQ(levelQ, levelP, shareOutQP1.Q, shareOutQP1.P, shareOutQP1.Q)
+	}
+
+	// h_0 = s_i * c_1 + (u_i * pk_0 + e0)/P
+	if ct.IsNTT {
+		ringQ.NTTLvl(levelQ, shareOut.Value[0], shareOut.Value[0])
+		ringQ.NTTLvl(levelQ, shareOut.Value[1], shareOut.Value[1])
+		ringQ.MulCoeffsMontgomeryAndAddLvl(levelQ, ct1, sk.Value.Q, shareOut.Value[0])
+	} else {
+		// tmp = s_i * c_1
+		ringQ.NTTLazyLvl(levelQ, ct1, nizkPCKS.tmpQP.Q)
+		ringQ.MulCoeffsMontgomeryConstantLvl(levelQ, nizkPCKS.tmpQP.Q, sk.Value.Q, nizkPCKS.tmpQP.Q)
+		ringQ.InvNTTLvl(levelQ, nizkPCKS.tmpQP.Q, nizkPCKS.tmpQP.Q)
+
+		// h_0 = s_i * c_1 + (u_i * pk_0 + e0)/P
+		ringQ.AddLvl(levelQ, shareOut.Value[0], nizkPCKS.tmpQP.Q, shareOut.Value[0])
+	}
+}
+
+func (nizkPCKS *NizkPCKSProtocol) AggregateShares(share1, share2, shareOut *PCKSShare) {
+	levelQ1, levelQ2 := share1.Value[0].Level(), share1.Value[1].Level()
+	if levelQ1 != levelQ2 {
+		panic("cannot AggregateShares: the two shares are at different levelQ.")
+	}
+	nizkPCKS.params.RingQ().AddLvl(levelQ1, share1.Value[0], share2.Value[0], shareOut.Value[0])
+	nizkPCKS.params.RingQ().AddLvl(levelQ1, share1.Value[1], share2.Value[1], shareOut.Value[1])
+}
+
+func (nizkPCKS *NizkPCKSProtocol) KeySwitch(ctIn *rlwe.Ciphertext, combined *PCKSShare, ctOut *rlwe.Ciphertext) {
+	level := ctIn.Level()
+	if ctIn != ctOut {
+		ctOut.Resize(ctIn.Degree(), level)
+		ctOut.MetaData = ctIn.MetaData
+	}
+
+	nizkPCKS.params.RingQ().AddLvl(level, ctIn.Value[0], combined.Value[0], ctOut.Value[0])
+
+	ring.CopyLvl(level, combined.Value[1], ctOut.Value[1])
+}
+
+func (nizkPCKS *NizkPCKSProtocol) MarshalNizkParams() ([]byte, []byte, []byte) {
+	uBytes, _ := nizkPCKS.u.MarshalBinary()
+	e0Bytes, _ := nizkPCKS.e0.MarshalBinary()
+	e1Bytes, _ := nizkPCKS.e1.MarshalBinary()
+
+	return uBytes, e0Bytes, e1Bytes
 }
