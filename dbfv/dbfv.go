@@ -37,3 +37,7 @@ func NewCKSProtocol(params bfv.Parameters, sigmaSmudging float64) *drlwe.CKSProt
 func NewPCKSProtocol(params bfv.Parameters, sigmaSmudging float64) *drlwe.PCKSProtocol {
 	return drlwe.NewPCKSProtocol(params.Parameters, sigmaSmudging)
 }
+
+func NewNizkPCKSProtocol(params bfv.Parameters, sigmaSmudging float64) *drlwe.NizkPCKSProtocol {
+	return drlwe.NewNizkPCKSProtocol(params.Parameters, sigmaSmudging)
+}
