@@ -52,7 +52,7 @@ func TestRing(t *testing.T) {
 }
 
 func TestBFVParameters(t *testing.T) {
-	params, err := bfv.NewParametersFromLiteral(bfv.PN12Q109)
+	params, err := bfv.NewParametersFromLiteral(bfv.DefaultParamsJ[0])
 	if err != nil {
 		fmt.Println(err)
 		return
