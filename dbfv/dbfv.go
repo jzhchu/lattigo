@@ -32,6 +32,8 @@ func NewCKSProtocol(params bfv.Parameters, sigmaSmudging float64) *drlwe.CKSProt
 	return drlwe.NewCKSProtocol(params.Parameters, sigmaSmudging)
 }
 
+//func NewNizkCKSProtocol(params bfv.Parameters, sigmaSmudging float64) *drlwe.
+
 // NewPCKSProtocol creates a new drlwe.PCKSProtocol instance from the BFV paramters.
 // The returned protocol instance is generic and can be used in other multiparty schemes.
 func NewPCKSProtocol(params bfv.Parameters, sigmaSmudging float64) *drlwe.PCKSProtocol {

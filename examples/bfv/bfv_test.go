@@ -52,7 +52,7 @@ func TestRing(t *testing.T) {
 }
 
 func TestBFVParameters(t *testing.T) {
-	params, err := bfv.NewParametersFromLiteral(bfv.DefaultParamsJ[0])
+	params, err := bfv.NewParametersFromLiteral(bfv.DefaultParamsJ[2])
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -61,6 +61,9 @@ func TestBFVParameters(t *testing.T) {
 	kgen := bfv.NewKeyGenerator(params)
 	sk, pk := kgen.GenKeyPair()
 	rlk := kgen.GenRelinearizationKey(sk, 1)
+
+	skNew := kgen.GenSecretKey()
+	swk := kgen.GenSwitchingKey(sk, skNew)
 
 	encoder := bfv.NewEncoder(params)
 	encryptor := bfv.NewEncryptor(params, pk)
@@ -98,16 +101,22 @@ func TestBFVParameters(t *testing.T) {
 	endTime = time.Now()
 	mulCipherTime := endTime.Sub(startTime)
 
+	mulCipherNew := evaluator.SwitchKeysNew(mulCipherText, swk)
+	decryptorNew := bfv.NewDecryptor(params, skNew)
+
 	startTime = time.Now()
 	addPlainText := decryptor.DecryptNew(addCipherText)
 	endTime = time.Now()
 	decryptTime := endTime.Sub(startTime)
 	mulPlainText := decryptor.DecryptNew(mulCipherText)
+	mulPlainNew := decryptorNew.DecryptNew(mulCipherNew)
 	addRes := encoder.DecodeUintNew(addPlainText)
 	mulRes := encoder.DecodeUintNew(mulPlainText)
+	mulNewRes := encoder.DecodeUintNew(mulPlainNew)
 
 	fmt.Println(addRes)
 	fmt.Println(mulRes)
+	fmt.Println(mulNewRes)
 
 	fmt.Println("encryption time is:", encryptTime)
 	fmt.Println("ciphertext add time is:", addCipherTime)

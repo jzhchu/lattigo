@@ -20,6 +20,19 @@ type MaskedTransformProtocol struct {
 	tmpMaskPerm *ring.Poly
 }
 
+type NizkMaskedTransformProtocol struct {
+	nizkE2S NizkE2SProtocol
+	nizkS2E NizkS2EProtocol
+
+	tmpPt       *rlwe.Plaintext
+	tmpMask     *ring.Poly
+	tmpMaskPerm *ring.Poly
+
+	e0   *ring.Poly
+	e1   *ring.Poly
+	mask *ring.Poly
+}
+
 // ShallowCopy creates a shallow copy of MaskedTransformProtocol in which all the read-only data-structures are
 // shared with the receiver and the temporary buffers are reallocated. The receiver and the returned
 // MaskedTransformProtocol can be used concurrently.
@@ -32,6 +45,20 @@ func (rfp *MaskedTransformProtocol) ShallowCopy() *MaskedTransformProtocol {
 		tmpPt:       bfv.NewPlaintext(params, params.MaxLevel()),
 		tmpMask:     params.RingT().NewPoly(),
 		tmpMaskPerm: params.RingT().NewPoly(),
+	}
+}
+
+func (nizkRFP *NizkMaskedTransformProtocol) ShallowCopy() *NizkMaskedTransformProtocol {
+	params := nizkRFP.nizkE2S.params
+
+	return &NizkMaskedTransformProtocol{
+		nizkE2S:     *nizkRFP.nizkE2S.ShallowCopy(),
+		nizkS2E:     *nizkRFP.nizkS2E.ShallowCopy(),
+		tmpPt:       bfv.NewPlaintext(params, params.MaxLevel()),
+		tmpMask:     params.RingT().NewPoly(),
+		tmpMaskPerm: params.RingT().NewPoly(),
+		e0:          nizkRFP.e0.CopyNew(),
+		e1:          nizkRFP.e1.CopyNew(),
 	}
 }
 
@@ -98,15 +125,41 @@ func NewMaskedTransformProtocol(paramsIn, paramsOut bfv.Parameters, sigmaSmudgin
 	return
 }
 
+func NewNizkMaskedTransformProtocol(paramsIn, paramsOut bfv.Parameters, sigmaSmudging float64) (nizkRFP *NizkMaskedTransformProtocol, err error) {
+	if paramsIn.N() > paramsOut.N() {
+		return nil, fmt.Errorf("newNizkMaskedTransformProtocol: paramsIn.N() != paramsOut.N()")
+	}
+
+	nizkRFP = new(NizkMaskedTransformProtocol)
+
+	nizkRFP.nizkE2S = *NewNizkE2SProtocol(paramsIn, sigmaSmudging)
+	nizkRFP.nizkS2E = *NewNizkS2EProtocol(paramsOut, sigmaSmudging)
+	//nizkRFP.nizkE2S.NizkCKSProtocol
+
+	nizkRFP.tmpPt = bfv.NewPlaintext(paramsOut, paramsOut.MaxLevel())
+	nizkRFP.tmpMask = paramsIn.RingT().NewPoly()
+	nizkRFP.tmpMaskPerm = paramsIn.RingT().NewPoly()
+
+	return
+}
+
 // SampleCRP samples a common random polynomial to be used in the Masked-Transform protocol from the provided
 // common reference string.
 func (rfp *MaskedTransformProtocol) SampleCRP(level int, crs utils.PRNG) drlwe.CKSCRP {
 	return rfp.s2e.SampleCRP(level, crs)
 }
 
+func (nizkRFP *NizkMaskedTransformProtocol) SampleCRP(level int, crs utils.PRNG) drlwe.CKSCRP {
+	return nizkRFP.nizkS2E.SampleCRP(level, crs)
+}
+
 // AllocateShare allocates the shares of the PermuteProtocol.
 func (rfp *MaskedTransformProtocol) AllocateShare(levelIn, levelOut int) *MaskedTransformShare {
 	return &MaskedTransformShare{*rfp.e2s.AllocateShare(levelIn), *rfp.s2e.AllocateShare(levelOut)}
+}
+
+func (nizkRFP *NizkMaskedTransformProtocol) AllocateShare(levelIn, levelOut int) *MaskedTransformShare {
+	return &MaskedTransformShare{*nizkRFP.nizkE2S.AllocateShare(levelIn), *nizkRFP.nizkS2E.AllocateShare(levelOut)}
 }
 
 // GenShare generates the shares of the PermuteProtocol.
@@ -141,10 +194,48 @@ func (rfp *MaskedTransformProtocol) GenShare(skIn, skOut *rlwe.SecretKey, ct *rl
 	rfp.s2e.GenShare(skOut, crs, &rlwe.AdditiveShare{Value: *mask}, &shareOut.s2eShare)
 }
 
+func (nizkRFP *NizkMaskedTransformProtocol) GenShare(skIn, skOut *rlwe.SecretKey, ct *rlwe.Ciphertext, crs drlwe.CKSCRP, transform *MaskedTransformFunc, shareOut *MaskedTransformShare) {
+	nizkRFP.nizkE2S.GenShare(skIn, ct, &rlwe.AdditiveShare{Value: *nizkRFP.tmpMask}, &shareOut.e2sShare)
+
+	mask := nizkRFP.tmpMask
+	if transform != nil {
+		coeffs := make([]uint64, nizkRFP.nizkE2S.params.N())
+		ecd := nizkRFP.nizkE2S.encoder
+		ptT := &bfv.PlaintextRingT{Plaintext: &rlwe.Plaintext{Value: mask}}
+
+		if transform.Decode {
+			ecd.Decode(ptT, coeffs)
+		} else {
+			copy(coeffs, ptT.Value.Coeffs[0])
+		}
+
+		transform.Func(coeffs)
+
+		if transform.Encode {
+			ecd.EncodeRingT(coeffs, &bfv.PlaintextRingT{Plaintext: &rlwe.Plaintext{Value: nizkRFP.tmpMaskPerm}})
+		} else {
+			copy(nizkRFP.tmpMaskPerm.Coeffs[0], coeffs)
+		}
+
+		mask = nizkRFP.tmpMaskPerm
+	}
+
+	nizkRFP.nizkS2E.GenShare(skOut, crs, &rlwe.AdditiveShare{Value: *mask}, &shareOut.s2eShare)
+
+	nizkRFP.e0 = nizkRFP.nizkE2S.GetNizkParams()
+	nizkRFP.e1 = nizkRFP.nizkS2E.GetNizkParams()
+	nizkRFP.mask = mask.CopyNew()
+}
+
 // AggregateShares sums share1 and share2 on shareOut.
 func (rfp *MaskedTransformProtocol) AggregateShares(share1, share2, shareOut *MaskedTransformShare) {
 	rfp.e2s.params.RingQ().Add(share1.e2sShare.Value, share2.e2sShare.Value, shareOut.e2sShare.Value)
 	rfp.s2e.params.RingQ().Add(share1.s2eShare.Value, share2.s2eShare.Value, shareOut.s2eShare.Value)
+}
+
+func (nizkRFP *NizkMaskedTransformProtocol) AggregateShares(share1, share2, shareOut *MaskedTransformShare) {
+	nizkRFP.nizkE2S.params.RingQ().Add(share1.e2sShare.Value, share2.e2sShare.Value, shareOut.e2sShare.Value)
+	nizkRFP.nizkS2E.params.RingQ().Add(share1.s2eShare.Value, share2.s2eShare.Value, shareOut.s2eShare.Value)
 }
 
 // Transform applies Decrypt, Recode and Recrypt on the input ciphertext.
@@ -180,4 +271,43 @@ func (rfp *MaskedTransformProtocol) Transform(ciphertext *rlwe.Ciphertext, trans
 	rfp.s2e.encoder.ScaleUp(&bfv.PlaintextRingT{Plaintext: &rlwe.Plaintext{Value: mask}}, rfp.tmpPt)
 	rfp.s2e.params.RingQ().Add(rfp.tmpPt.Value, share.s2eShare.Value, ciphertextOut.Value[0])
 	rfp.s2e.GetEncryption(&drlwe.CKSShare{Value: ciphertextOut.Value[0]}, crs, ciphertextOut)
+}
+
+func (nizkRFP *NizkMaskedTransformProtocol) Transform(ciphertext *rlwe.Ciphertext, transform *MaskedTransformFunc, crs drlwe.CKSCRP, share *MaskedTransformShare, ciphertextOut *rlwe.Ciphertext) {
+	nizkRFP.nizkE2S.GetShare(nil, &share.e2sShare, ciphertext, &rlwe.AdditiveShare{Value: *nizkRFP.tmpMask})
+	mask := nizkRFP.tmpMask
+	if transform != nil {
+		coeffs := make([]uint64, nizkRFP.nizkE2S.params.N())
+		ecd := nizkRFP.nizkE2S.encoder
+		ptT := &bfv.PlaintextRingT{Plaintext: &rlwe.Plaintext{Value: mask}}
+
+		if transform.Decode {
+			ecd.Decode(ptT, coeffs)
+		} else {
+			copy(coeffs, ptT.Value.Coeffs[0])
+		}
+
+		transform.Func(coeffs)
+
+		if transform.Encode {
+			ecd.EncodeRingT(coeffs, &bfv.PlaintextRingT{Plaintext: &rlwe.Plaintext{Value: nizkRFP.tmpMaskPerm}})
+		} else {
+			copy(nizkRFP.tmpMaskPerm.Coeffs[0], coeffs)
+		}
+
+		mask = nizkRFP.tmpMaskPerm
+	}
+
+	ciphertextOut.Resize(1, nizkRFP.nizkS2E.params.MaxLevel())
+	nizkRFP.nizkS2E.encoder.ScaleUp(&bfv.PlaintextRingT{Plaintext: &rlwe.Plaintext{Value: mask}}, nizkRFP.tmpPt)
+	nizkRFP.nizkS2E.params.RingQ().Add(nizkRFP.tmpPt.Value, share.s2eShare.Value, ciphertextOut.Value[0])
+	nizkRFP.nizkS2E.GetEncryption(&drlwe.CKSShare{Value: ciphertextOut.Value[0]}, crs, ciphertextOut)
+}
+
+func (nizkRFP *NizkMaskedTransformProtocol) MarshalNizkParams() ([]byte, []byte, []byte) {
+	e0Bytes, _ := nizkRFP.e0.MarshalBinary()
+	e1Bytes, _ := nizkRFP.e1.MarshalBinary()
+	maskBytes, _ := nizkRFP.mask.MarshalBinary()
+
+	return e0Bytes, e1Bytes, maskBytes
 }

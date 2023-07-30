@@ -11,11 +11,19 @@ type RefreshProtocol struct {
 	MaskedTransformProtocol
 }
 
+type NizkRefreshProtocol struct {
+	NizkMaskedTransformProtocol
+}
+
 // ShallowCopy creates a shallow copy of RefreshProtocol in which all the read-only data-structures are
 // shared with the receiver and the temporary buffers are reallocated. The receiver and the returned
 // RefreshProtocol can be used concurrently.
 func (rfp *RefreshProtocol) ShallowCopy() *RefreshProtocol {
 	return &RefreshProtocol{*rfp.MaskedTransformProtocol.ShallowCopy()}
+}
+
+func (nizkRFP *NizkRefreshProtocol) ShallowCopy() *NizkRefreshProtocol {
+	return &NizkRefreshProtocol{*nizkRFP.NizkMaskedTransformProtocol.ShallowCopy()}
 }
 
 // RefreshShare is a struct storing a party's share in the Refresh protocol.
@@ -31,9 +39,21 @@ func NewRefreshProtocol(params bfv.Parameters, sigmaSmudging float64) (rfp *Refr
 	return
 }
 
+func NewNizkRefreshProtocol(params bfv.Parameters, sigmaSmudging float64) (nizkRFP *NizkRefreshProtocol) {
+	nizkRFP = new(NizkRefreshProtocol)
+	nizkMT, _ := NewNizkMaskedTransformProtocol(params, params, sigmaSmudging)
+	nizkRFP.NizkMaskedTransformProtocol = *nizkMT
+	return
+}
+
 // AllocateShare allocates the shares of the PermuteProtocol
 func (rfp *RefreshProtocol) AllocateShare(levelIn, levelOut int) *RefreshShare {
 	share := rfp.MaskedTransformProtocol.AllocateShare(levelIn, levelOut)
+	return &RefreshShare{*share}
+}
+
+func (nizkRFP *NizkRefreshProtocol) AllocateShare(levelIn, levelOut int) *RefreshShare {
+	share := nizkRFP.NizkMaskedTransformProtocol.AllocateShare(levelIn, levelOut)
 	return &RefreshShare{*share}
 }
 
@@ -43,12 +63,29 @@ func (rfp *RefreshProtocol) GenShare(sk *rlwe.SecretKey, ct *rlwe.Ciphertext, cr
 	rfp.MaskedTransformProtocol.GenShare(sk, sk, ct, crp, nil, &shareOut.MaskedTransformShare)
 }
 
+func (nizkRFP *NizkRefreshProtocol) GenShare(sk *rlwe.SecretKey, ct *rlwe.Ciphertext, crp drlwe.CKSCRP, shareOut *RefreshShare) {
+	nizkRFP.NizkMaskedTransformProtocol.GenShare(sk, sk, ct, crp, nil, &shareOut.MaskedTransformShare)
+}
+
+//func (nizkRFP *NizkRefreshProtocol) MarshalNizkParams() []byte {
+//	eBytes := nizkRFP.MarshalNizkParams()
+//	return eBytes
+//}
+
 // AggregateShares aggregates two parties' shares in the Refresh protocol.
 func (rfp *RefreshProtocol) AggregateShares(share1, share2, shareOut *RefreshShare) {
 	rfp.MaskedTransformProtocol.AggregateShares(&share1.MaskedTransformShare, &share2.MaskedTransformShare, &shareOut.MaskedTransformShare)
 }
 
+func (nizkRFP *NizkRefreshProtocol) AggregateShares(share1, share2, shareOut *RefreshShare) {
+	nizkRFP.NizkMaskedTransformProtocol.AggregateShares(&share1.MaskedTransformShare, &share2.MaskedTransformShare, &shareOut.MaskedTransformShare)
+}
+
 // Finalize applies Decrypt, Recode and Recrypt on the input ciphertext.
 func (rfp *RefreshProtocol) Finalize(ctIn *rlwe.Ciphertext, crp drlwe.CKSCRP, share *RefreshShare, ctOut *rlwe.Ciphertext) {
 	rfp.MaskedTransformProtocol.Transform(ctIn, nil, crp, &share.MaskedTransformShare, ctOut)
+}
+
+func (nizkRFP *NizkRefreshProtocol) Finalize(ctIn *rlwe.Ciphertext, crp drlwe.CKSCRP, share *RefreshShare, ctOut *rlwe.Ciphertext) {
+	nizkRFP.NizkMaskedTransformProtocol.Transform(ctIn, nil, crp, &share.MaskedTransformShare, ctOut)
 }
