@@ -82,7 +82,7 @@ func TestNizkPCKS(t *testing.T) {
 }
 
 func TestColBootstrap(t *testing.T) {
-	params, _ := bfv.NewParametersFromLiteral(bfv.PN11QP54)
+	params, _ := bfv.NewParametersFromLiteral(bfv.PN12Q109)
 	crs, _ := utils.NewKeyedPRNG([]byte{'l', 'a', 't', 't', 'e'})
 	N := 4
 
@@ -167,6 +167,54 @@ func TestColBootstrap(t *testing.T) {
 		cbsShare := nizkCBS.AllocateShare(params.MaxLevel(), params.MaxLevel())
 		nizkCBS.GenShare(skArray[i], resCipherText, cbsCRP, cbsShare)
 		nizkCBS.AggregateShares(cbsShare, cbsCombined, cbsCombined)
+
+		ringQ := params.RingQ()
+		maskBytes, e0Bytes, e1Bytes := nizkCBS.MarshalNizkParams()
+		delta := params.Delta()
+		//deltaMForm := params.DeltaMForm()
+		mask := new(ring.Poly)
+		e0 := new(ring.Poly)
+		e1 := new(ring.Poly)
+		err := mask.UnmarshalBinary(maskBytes)
+		if err != nil {
+			panic(err)
+		}
+		err = e0.UnmarshalBinary(e0Bytes)
+		if err != nil {
+			panic(err)
+		}
+		err = e1.UnmarshalBinary(e1Bytes)
+		if err != nil {
+			panic(err)
+		}
+
+		deltaM := ringQ.NewPoly()
+		c1 := ringQ.NewPoly()
+		sc := ringQ.NewPoly()
+		sa := ringQ.NewPoly()
+		a := ringQ.NewPoly()
+		s := ringQ.NewPoly()
+		h0 := ringQ.NewPoly()
+		h1 := ringQ.NewPoly()
+
+		s = skArray[i].Value.Q.CopyNew()
+		copy(a.Buff, cbsCRP.Buff)
+		a.Resize(params.MaxLevel())
+		ringQ.InvMForm(s, s)
+		ringQ.InvNTT(s, s)
+		ringQ.NTT(s, s)
+		ringQ.NTT(a, a)
+		ringQ.NTT(resCipherText.Value[1], c1)
+		ringQ.MulCoeffs(c1, s, sc)
+		ringQ.MulCoeffs(a, s, sa)
+		ringQ.MulScalar(mask, delta, deltaM)
+		ringQ.InvNTT(sc, sc)
+		ringQ.InvNTT(sa, sa)
+		ringQ.Add(sc, e0, h0)
+		ringQ.Add(deltaM, e1, h1)
+		ringQ.Sub(h0, deltaM, h0)
+		ringQ.Sub(h1, sa, h1)
+
 	}
 	nizkCBS.Finalize(resCipherText, cbsCRP, cbsCombined, resCipherText)
 

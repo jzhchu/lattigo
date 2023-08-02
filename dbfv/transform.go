@@ -309,5 +309,5 @@ func (nizkRFP *NizkMaskedTransformProtocol) MarshalNizkParams() ([]byte, []byte,
 	e1Bytes, _ := nizkRFP.e1.MarshalBinary()
 	maskBytes, _ := nizkRFP.mask.MarshalBinary()
 
-	return e0Bytes, e1Bytes, maskBytes
+	return maskBytes, e0Bytes, e1Bytes
 }

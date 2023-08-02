@@ -389,6 +389,21 @@ func (p Parameters) PrimitiveRoots() []uint64 {
 	return res
 }
 
+func (p Parameters) Delta() uint64 {
+	ringQ := p.ringQ
+	tmp := new(big.Int)
+	tmp.Quo(ringQ.ModulusAtLevel[p.MaxLevel()], ringQ.ModulusAtLevel[0])
+	return tmp.Mod(tmp, new(big.Int).SetUint64(ringQ.Modulus[0])).Uint64()
+}
+
+func (p Parameters) DeltaMForm() uint64 {
+	ringQ := p.ringQ
+	tmp := new(big.Int)
+	tmp.Quo(ringQ.ModulusAtLevel[p.MaxLevel()], ringQ.ModulusAtLevel[0])
+
+	return ring.MForm(tmp.Mod(tmp, new(big.Int).SetUint64(ringQ.Modulus[0])).Uint64(), ringQ.Modulus[0], ringQ.BredParams[0])
+}
+
 // Pow2Base returns the base 2^x decomposition used for the key-switching keys.
 // Returns 0 if no decomposition is used (the case where x = 0).
 func (p Parameters) Pow2Base() int {
