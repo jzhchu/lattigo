@@ -167,7 +167,6 @@ func TestColBootstrap(t *testing.T) {
 		cbsShare := nizkCBS.AllocateShare(params.MaxLevel(), params.MaxLevel())
 		nizkCBS.GenShare(skArray[i], resCipherText, cbsCRP, cbsShare)
 		nizkCBS.AggregateShares(cbsShare, cbsCombined, cbsCombined)
-
 		ringQ := params.RingQ()
 		maskBytes, e0Bytes, e1Bytes := nizkCBS.MarshalNizkParams()
 		delta := params.Delta()
@@ -215,6 +214,8 @@ func TestColBootstrap(t *testing.T) {
 		ringQ.Sub(h0, deltaM, h0)
 		ringQ.Sub(h1, sa, h1)
 
+		hShare0, hShare1 := nizkCBS.GetShares()
+		fmt.Println(ringQ.Equal(hShare0, h0), ringQ.Equal(hShare1, h1))
 	}
 	nizkCBS.Finalize(resCipherText, cbsCRP, cbsCombined, resCipherText)
 

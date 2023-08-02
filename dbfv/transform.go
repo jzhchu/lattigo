@@ -31,6 +31,9 @@ type NizkMaskedTransformProtocol struct {
 	e0   *ring.Poly
 	e1   *ring.Poly
 	mask *ring.Poly
+
+	h0 *ring.Poly
+	h1 *ring.Poly
 }
 
 // ShallowCopy creates a shallow copy of MaskedTransformProtocol in which all the read-only data-structures are
@@ -225,6 +228,9 @@ func (nizkRFP *NizkMaskedTransformProtocol) GenShare(skIn, skOut *rlwe.SecretKey
 	nizkRFP.e0 = nizkRFP.nizkE2S.GetNizkParams()
 	nizkRFP.e1 = nizkRFP.nizkS2E.GetNizkParams()
 	nizkRFP.mask = mask.CopyNew()
+
+	nizkRFP.h0 = shareOut.e2sShare.Value.CopyNew()
+	nizkRFP.h1 = shareOut.s2eShare.Value.CopyNew()
 }
 
 // AggregateShares sums share1 and share2 on shareOut.
@@ -236,6 +242,10 @@ func (rfp *MaskedTransformProtocol) AggregateShares(share1, share2, shareOut *Ma
 func (nizkRFP *NizkMaskedTransformProtocol) AggregateShares(share1, share2, shareOut *MaskedTransformShare) {
 	nizkRFP.nizkE2S.params.RingQ().Add(share1.e2sShare.Value, share2.e2sShare.Value, shareOut.e2sShare.Value)
 	nizkRFP.nizkS2E.params.RingQ().Add(share1.s2eShare.Value, share2.s2eShare.Value, shareOut.s2eShare.Value)
+}
+
+func (nizkRFP *NizkMaskedTransformProtocol) GetShares() (*ring.Poly, *ring.Poly) {
+	return nizkRFP.h0, nizkRFP.h1
 }
 
 // Transform applies Decrypt, Recode and Recrypt on the input ciphertext.
