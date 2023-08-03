@@ -196,6 +196,15 @@ func TestColBootstrap(t *testing.T) {
 		h0 := ringQ.NewPoly()
 		h1 := ringQ.NewPoly()
 
+		deltaPoly := ringQ.NewPoly()
+		maskOverQ := ringQ.NewPoly()
+		for i := 0; i < deltaPoly.Level()+1; i++ {
+			deltaPoly.Coeffs[i][0] = delta
+		}
+		for i := 0; i < maskOverQ.N(); i++ {
+			maskOverQ.Coeffs[0][i] = mask.Coeffs[0][i]
+		}
+
 		s = skArray[i].Value.Q.CopyNew()
 		copy(a.Buff, cbsCRP.Buff)
 		a.Resize(params.MaxLevel())
@@ -204,9 +213,13 @@ func TestColBootstrap(t *testing.T) {
 		ringQ.NTT(s, s)
 		ringQ.NTT(a, a)
 		ringQ.NTT(resCipherText.Value[1], c1)
+		ringQ.NTT(maskOverQ, maskOverQ)
+		ringQ.NTT(deltaPoly, deltaPoly)
 		ringQ.MulCoeffs(c1, s, sc)
 		ringQ.MulCoeffs(a, s, sa)
-		ringQ.MulScalar(mask, delta, deltaM)
+		//ringQ.MulScalar(mask, delta, deltaM)
+		ringQ.MulCoeffs(maskOverQ, deltaPoly, deltaM)
+		ringQ.InvNTT(deltaM, deltaM)
 		ringQ.InvNTT(sc, sc)
 		ringQ.InvNTT(sa, sa)
 		ringQ.Add(sc, e0, h0)
@@ -214,7 +227,7 @@ func TestColBootstrap(t *testing.T) {
 		ringQ.Sub(h0, deltaM, h0)
 		ringQ.Sub(h1, sa, h1)
 
-		hShare0, hShare1 := nizkCBS.GetShares()
+		hShare0, hShare1 := nizkCBS.ParseCBSShare(cbsShare.MaskedTransformShare)
 		fmt.Println(ringQ.Equal(hShare0, h0), ringQ.Equal(hShare1, h1))
 	}
 	nizkCBS.Finalize(resCipherText, cbsCRP, cbsCombined, resCipherText)
